@@ -23,7 +23,7 @@ public class Crime {
         this(UUID.randomUUID());
     }
 
-    //Single parameter constuctor that takes in a UUID an assigns it.
+    //Single parameter constructor that takes in a UUID an assigns it.
     public Crime(UUID id) {
         mId = id;
         mDate = new Date();
