@@ -57,6 +57,11 @@ public class CrimeLab {
         mCrimes.add(c);
     }
 
+    //Setter for the crimes list
+    public void setCrimes(List<Crime> crimes) {
+        mCrimes= crimes;
+    }
+
     //Getter to get the crimes
     public List<Crime> getCrimes() {
         return mCrimes;

@@ -44,8 +44,8 @@ public class CrimeListFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
-        //This will make a new insance of the FectchCrimesask private
-        //class. When the execue method gets called on it, the
+        //This will make a new instance of the FetchCrimeTask private
+        //class. When the execute method gets called on it, the
         //FetcherCrimesTask will star the donInBackground method on a
         //seperate thread automatically for us.
         new FetchCrimesTask().execute();
@@ -157,14 +157,22 @@ public class CrimeListFragment extends Fragment {
         //and set the Adapter for the Recycler view.
         if (mAdapter == null) {
 
+            //Call the new setupAdapter method that did he work that the below statements did + more.
+            setupAdapter();
+
+            //*Note: the following was used before we switched to getinig our data from a netwroked service. We are now
+            //going to call a seperate method to do this work that can add a few extra checks about whether the adpater
+            //should be setup at this time.
+
             //Create a new crimeAdapter and send it over the list
             //of crimes. Crime adapter needs the list of crimes so
             //that it can work with the recyclerview to display them.
-            mAdapter = new CrimeAdapter(crimes);
+            //mAdapter = new CrimeAdapter(crimes);
 
             //Take the adapter that we just created, and set it as the
             //adapter that the recycler view is going to use.
-            mCrimeRecyclerView.setAdapter(mAdapter);
+           // mCrimeRecyclerView.setAdapter(mAdapter);
+
 
         //Else, the adapter already exists, so we just need to notify
         //that the data set might have changed. This will
@@ -175,6 +183,19 @@ public class CrimeListFragment extends Fragment {
 
         updateSubtitle();
 
+    }
+
+    //Method to set the adapter for the recycler view
+    private void setupAdapter() {
+        //Check to see if the fragment has been added. In other words is the thread done.
+        if (isAdded()){
+            //Get a reference to the CrimeLab
+            CrimeLab lab = CrimeLab.get(getActivity());
+            //Create a new adaper sending in the crimes list.
+            mAdapter = new CrimeAdapter(lab.getCrimes());
+            //Set the adapter on the recycler view.
+            mCrimeRecyclerView.setAdapter(mAdapter);
+        }
     }
 
     private class CrimeHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
@@ -293,14 +314,14 @@ public class CrimeListFragment extends Fragment {
     }
 
     //Private class to do the networking that we need done on a seperate thread
-    private class FetchCrimesTask extends AsyncTask<Void,Void,Void>{
+    private class FetchCrimesTask extends AsyncTask<Void,Void,List<Crime>>{
         //his is the method that will bexecuted on the separate thread
         //Once it completes the onPostExecute method will be called automatically
         @Override
-        protected Void doInBackground(Void... params) {
+        protected List<Crime> doInBackground(Void... params) {
 
             //Create a new Crime Fetcher class and call he fetchCrimes method on the instance that is created
-            new CrimeFetcher().fetchCrimes();
+            return new CrimeFetcher().fetchCrimes();
             /*
             try {
                 //Create a new CrimeFetcher and call the getUrlStrinig method
@@ -314,14 +335,21 @@ public class CrimeListFragment extends Fragment {
                 Log.e(TAG, "Failed to fetch URL: "+ ioe);
             }*/
             //Just retrun null for now.
-            return null;
+            //return null;
         }
 
         //Method that will automatically get called when the code in
         //doInBackground gets done executing.
+        //The parameter that is passed into this method is the same as the variable that is returned from the doInBackground method.
+        //doInBackground return = onPostExecutes method parameter.
         @Override
-        protected void onPostExecute(Void aVoid) {
-            super.onPostExecute(aVoid);
+        protected void onPostExecute(List<Crime> crimes){
+            //Get a reference to the crime labe
+            CrimeLab lab = CrimeLab.get(getActivity());
+            //Use the setter setCrimes to set the crimew to the passed in crimes.
+            lab.setCrimes(crimes);
+            //Now that we knwo that we have a data soruce, we can setup the adapter for the recycler view.
+            setupAdapter();
         }
     }
 
